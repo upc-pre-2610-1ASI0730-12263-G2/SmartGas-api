@@ -1,0 +1,15 @@
+bin/
+obj/
+.vs/
+.idea/
+*.user
+*.suo
+*.zip
+*.log
+
+# Local development settings
+appsettings.Development.json
+
+# OS files
+.DS_Store
+Thumbs.db
