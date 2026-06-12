@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="InvalidAccountZoneOrSensorCode" xml:space="preserve"><value>La cuenta, la zona o el código del sensor no es válido.</value></data>
+  <data name="SensorNotFound" xml:space="preserve"><value>El sensor no fue encontrado.</value></data>
+  <data name="ValidAccountIdRequired" xml:space="preserve"><value>Se requiere un identificador de cuenta válido.</value></data>
+  <data name="ValidZoneIdRequired" xml:space="preserve"><value>Se requiere un identificador de zona válido.</value></data>
+  <data name="SensorCodeRequired" xml:space="preserve"><value>El código del sensor es obligatorio.</value></data>
+  <data name="SensorNameRequired" xml:space="preserve"><value>El nombre del sensor es obligatorio.</value></data>
+  <data name="SelectedZoneDoesNotBelongToAccount" xml:space="preserve"><value>La zona seleccionada no pertenece a esta cuenta.</value></data>
+  <data name="SensorCodeAlreadyExists" xml:space="preserve"><value>Ya existe un sensor con el mismo código.</value></data>
+  <data name="InvalidSensorStatus" xml:space="preserve"><value>El estado del sensor no es válido.</value></data>
+  <data name="NoActiveSubscription" xml:space="preserve"><value>La cuenta no tiene una suscripción activa.</value></data>
+  <data name="SensorPlanLimitReached" xml:space="preserve"><value>Límite del plan alcanzado. Tu plan actual permite hasta {0} sensores.</value></data>
+</root>
