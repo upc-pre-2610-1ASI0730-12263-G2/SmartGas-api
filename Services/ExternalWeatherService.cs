@@ -23,51 +23,77 @@ public class ExternalWeatherService
             $"?latitude={latitudeText}" +
             $"&longitude={longitudeText}" +
             "&current=temperature_2m,relative_humidity_2m,wind_speed_10m" +
+            "&current_weather=true" +
             "&timezone=auto";
 
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
         request.Headers.UserAgent.ParseAdd("SmartGas.Api/1.0");
 
         using var response = await _httpClient.SendAsync(request);
+        var json = await response.Content.ReadAsStringAsync();
 
         if (!response.IsSuccessStatusCode)
         {
             return null;
         }
 
-        var json = await response.Content.ReadAsStringAsync();
-
         using var document = JsonDocument.Parse(json);
         var root = document.RootElement;
 
-        if (!root.TryGetProperty("current", out var current))
+        var latitudeValue = GetDecimal(root, "latitude");
+        var longitudeValue = GetDecimal(root, "longitude");
+        var timezone = GetString(root, "timezone");
+
+        if (root.TryGetProperty("current", out var current))
         {
-            return null;
+            var currentUnits = root.TryGetProperty("current_units", out var units)
+                ? units
+                : default;
+
+            return new ExternalWeatherResponse
+            {
+                Latitude = latitudeValue,
+                Longitude = longitudeValue,
+                Timezone = timezone,
+                CurrentTime = GetString(current, "time"),
+                Temperature = GetDecimal(current, "temperature_2m"),
+                TemperatureUnit = GetString(currentUnits, "temperature_2m", "°C"),
+                RelativeHumidity = GetInt(current, "relative_humidity_2m"),
+                RelativeHumidityUnit = GetString(currentUnits, "relative_humidity_2m", "%"),
+                WindSpeed = GetDecimal(current, "wind_speed_10m"),
+                WindSpeedUnit = GetString(currentUnits, "wind_speed_10m", "km/h"),
+                Source = "Open-Meteo"
+            };
         }
 
-        if (!root.TryGetProperty("current_units", out var currentUnits))
+        if (root.TryGetProperty("current_weather", out var currentWeather))
         {
-            return null;
+            return new ExternalWeatherResponse
+            {
+                Latitude = latitudeValue,
+                Longitude = longitudeValue,
+                Timezone = timezone,
+                CurrentTime = GetString(currentWeather, "time"),
+                Temperature = GetDecimal(currentWeather, "temperature"),
+                TemperatureUnit = "°C",
+                RelativeHumidity = 0,
+                RelativeHumidityUnit = "%",
+                WindSpeed = GetDecimal(currentWeather, "windspeed"),
+                WindSpeedUnit = "km/h",
+                Source = "Open-Meteo"
+            };
         }
 
-        return new ExternalWeatherResponse
-        {
-            Latitude = GetDecimal(root, "latitude"),
-            Longitude = GetDecimal(root, "longitude"),
-            Timezone = GetString(root, "timezone"),
-            CurrentTime = GetString(current, "time"),
-            Temperature = GetDecimal(current, "temperature_2m"),
-            TemperatureUnit = GetString(currentUnits, "temperature_2m"),
-            RelativeHumidity = GetInt(current, "relative_humidity_2m"),
-            RelativeHumidityUnit = GetString(currentUnits, "relative_humidity_2m"),
-            WindSpeed = GetDecimal(current, "wind_speed_10m"),
-            WindSpeedUnit = GetString(currentUnits, "wind_speed_10m"),
-            Source = "Open-Meteo"
-        };
+        return null;
     }
 
     private static decimal GetDecimal(JsonElement element, string propertyName)
     {
+        if (element.ValueKind == JsonValueKind.Undefined)
+        {
+            return 0;
+        }
+
         if (!element.TryGetProperty(propertyName, out var property))
         {
             return 0;
@@ -80,33 +106,44 @@ public class ExternalWeatherService
             _ => 0
         };
     }
+
     private static int GetInt(JsonElement element, string propertyName)
-{
-    if (!element.TryGetProperty(propertyName, out var property))
     {
-        return 0;
-    }
+        if (element.ValueKind == JsonValueKind.Undefined)
+        {
+            return 0;
+        }
 
-    return property.ValueKind switch
-    {
-        JsonValueKind.Number => property.GetInt32(),
-        JsonValueKind.String when int.TryParse(property.GetString(), NumberStyles.Any, CultureInfo.InvariantCulture, out var value) => value,
-        _ => 0
-    };
-}
-
-    private static string GetString(JsonElement element, string propertyName)
-    {
         if (!element.TryGetProperty(propertyName, out var property))
         {
-            return string.Empty;
+            return 0;
         }
 
         return property.ValueKind switch
         {
-            JsonValueKind.String => property.GetString() ?? string.Empty,
+            JsonValueKind.Number => property.GetInt32(),
+            JsonValueKind.String when int.TryParse(property.GetString(), NumberStyles.Any, CultureInfo.InvariantCulture, out var value) => value,
+            _ => 0
+        };
+    }
+
+    private static string GetString(JsonElement element, string propertyName, string fallback = "")
+    {
+        if (element.ValueKind == JsonValueKind.Undefined)
+        {
+            return fallback;
+        }
+
+        if (!element.TryGetProperty(propertyName, out var property))
+        {
+            return fallback;
+        }
+
+        return property.ValueKind switch
+        {
+            JsonValueKind.String => property.GetString() ?? fallback,
             JsonValueKind.Number => property.GetRawText(),
-            _ => string.Empty
+            _ => fallback
         };
     }
 }
