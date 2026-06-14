@@ -19,11 +19,11 @@ public class ExternalWeatherService
         var longitudeText = longitude.ToString(CultureInfo.InvariantCulture);
 
         var url =
-            $"https://api.open-meteo.com/v1/forecast" +
+            "https://api.open-meteo.com/v1/forecast" +
             $"?latitude={latitudeText}" +
             $"&longitude={longitudeText}" +
-            $"&current=temperature_2m,relative_humidity_2m,wind_speed_10m" +
-            $"&timezone=auto";
+            "&current=temperature_2m,relative_humidity_2m,wind_speed_10m" +
+            "&timezone=auto";
 
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
         request.Headers.UserAgent.ParseAdd("SmartGas.Api/1.0");
@@ -35,33 +35,78 @@ public class ExternalWeatherService
             return null;
         }
 
-        await using var stream = await response.Content.ReadAsStreamAsync();
+        var json = await response.Content.ReadAsStringAsync();
 
-        var options = new JsonSerializerOptions
+        using var document = JsonDocument.Parse(json);
+        var root = document.RootElement;
+
+        if (!root.TryGetProperty("current", out var current))
         {
-            PropertyNameCaseInsensitive = true
-        };
+            return null;
+        }
 
-        var openMeteoResponse = await JsonSerializer.DeserializeAsync<OpenMeteoForecastResponse>(stream, options);
-
-        if (openMeteoResponse?.Current == null || openMeteoResponse.CurrentUnits == null)
+        if (!root.TryGetProperty("current_units", out var currentUnits))
         {
             return null;
         }
 
         return new ExternalWeatherResponse
         {
-            Latitude = openMeteoResponse.Latitude,
-            Longitude = openMeteoResponse.Longitude,
-            Timezone = openMeteoResponse.Timezone,
-            CurrentTime = openMeteoResponse.Current.Time,
-            Temperature = openMeteoResponse.Current.Temperature2m,
-            TemperatureUnit = openMeteoResponse.CurrentUnits.Temperature2m,
-            RelativeHumidity = openMeteoResponse.Current.RelativeHumidity2m,
-            RelativeHumidityUnit = openMeteoResponse.CurrentUnits.RelativeHumidity2m,
-            WindSpeed = openMeteoResponse.Current.WindSpeed10m,
-            WindSpeedUnit = openMeteoResponse.CurrentUnits.WindSpeed10m,
+            Latitude = GetDecimal(root, "latitude"),
+            Longitude = GetDecimal(root, "longitude"),
+            Timezone = GetString(root, "timezone"),
+            CurrentTime = GetString(current, "time"),
+            Temperature = GetDecimal(current, "temperature_2m"),
+            TemperatureUnit = GetString(currentUnits, "temperature_2m"),
+            RelativeHumidity = GetInt(current, "relative_humidity_2m"),
+            RelativeHumidityUnit = GetString(currentUnits, "relative_humidity_2m"),
+            WindSpeed = GetDecimal(current, "wind_speed_10m"),
+            WindSpeedUnit = GetString(currentUnits, "wind_speed_10m"),
             Source = "Open-Meteo"
+        };
+    }
+
+    private static decimal GetDecimal(JsonElement element, string propertyName)
+    {
+        if (!element.TryGetProperty(propertyName, out var property))
+        {
+            return 0;
+        }
+
+        return property.ValueKind switch
+        {
+            JsonValueKind.Number => property.GetDecimal(),
+            JsonValueKind.String when decimal.TryParse(property.GetString(), NumberStyles.Any, CultureInfo.InvariantCulture, out var value) => value,
+            _ => 0
+        };
+    }
+    private static int GetInt(JsonElement element, string propertyName)
+{
+    if (!element.TryGetProperty(propertyName, out var property))
+    {
+        return 0;
+    }
+
+    return property.ValueKind switch
+    {
+        JsonValueKind.Number => property.GetInt32(),
+        JsonValueKind.String when int.TryParse(property.GetString(), NumberStyles.Any, CultureInfo.InvariantCulture, out var value) => value,
+        _ => 0
+    };
+}
+
+    private static string GetString(JsonElement element, string propertyName)
+    {
+        if (!element.TryGetProperty(propertyName, out var property))
+        {
+            return string.Empty;
+        }
+
+        return property.ValueKind switch
+        {
+            JsonValueKind.String => property.GetString() ?? string.Empty,
+            JsonValueKind.Number => property.GetRawText(),
+            _ => string.Empty
         };
     }
 }
