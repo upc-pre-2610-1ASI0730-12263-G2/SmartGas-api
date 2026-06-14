@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="AccountNotFound" xml:space="preserve"><value>La cuenta no fue encontrada.</value></data>
+  <data name="EmergencyContactNameRequired" xml:space="preserve"><value>El nombre del contacto de emergencia es obligatorio.</value></data>
+  <data name="EmergencyContactPhoneRequired" xml:space="preserve"><value>El teléfono del contacto de emergencia es obligatorio.</value></data>
+  <data name="EmergencyContactEmailRequired" xml:space="preserve"><value>El correo del contacto de emergencia es obligatorio.</value></data>
+</root>

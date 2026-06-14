@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="InvalidLatitude" xml:space="preserve"><value>Latitude must be between -90 and 90.</value></data>
+  <data name="InvalidLongitude" xml:space="preserve"><value>Longitude must be between -180 and 180.</value></data>
+  <data name="ExternalWeatherNoData" xml:space="preserve"><value>The external weather service did not return data.</value></data>
+  <data name="ExternalWeatherUnavailable" xml:space="preserve"><value>The external weather service is currently unavailable.</value></data>
+  <data name="ExternalWeatherTimeout" xml:space="preserve"><value>The external weather service request timed out.</value></data>
+  <data name="ExternalWeatherInvalidResponse" xml:space="preserve"><value>The external weather service returned an invalid response.</value></data>
+</root>
