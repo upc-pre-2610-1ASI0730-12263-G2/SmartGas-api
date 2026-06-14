@@ -13,21 +13,34 @@ var allowedOrigins = new List<string>
 {
     "http://localhost:5173",
     "http://localhost:5174",
-    "https://localhost:5173"
+    "https://localhost:5173",
+    "https://smartgas-app-web-v1.web.app",
+    "https://smartgas-app-web-v1.firebaseapp.com"
 };
 
 var frontendUrl = builder.Configuration["FRONTEND_URL"];
 
 if (!string.IsNullOrWhiteSpace(frontendUrl))
 {
-    allowedOrigins.Add(frontendUrl);
+    allowedOrigins.Add(frontendUrl.Trim().TrimEnd('/'));
 }
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowFrontend", policy =>
+    options.AddPolicy(allowedCorsPolicy, policy =>
     {
-        policy.WithOrigins(allowedOrigins.ToArray())
+        policy
+            .SetIsOriginAllowed(origin =>
+            {
+                if (string.IsNullOrWhiteSpace(origin))
+                {
+                    return false;
+                }
+
+                var normalizedOrigin = origin.Trim().TrimEnd('/');
+
+                return allowedOrigins.Contains(normalizedOrigin);
+            })
             .AllowAnyHeader()
             .AllowAnyMethod();
     });
@@ -84,8 +97,6 @@ using (var scope = app.Services.CreateScope())
     context.Database.Migrate();
     DatabaseSeeder.Seed(context);
 }
-
-app.UseHttpsRedirection();
 
 app.UseCors(allowedCorsPolicy);
 
