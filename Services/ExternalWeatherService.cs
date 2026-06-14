@@ -1,5 +1,5 @@
 using System.Globalization;
-using System.Net.Http.Json;
+using System.Text.Json;
 using SmartGas.Api.DTOs;
 
 namespace SmartGas.Api.Services;
@@ -23,11 +23,28 @@ public class ExternalWeatherService
             $"?latitude={latitudeText}" +
             $"&longitude={longitudeText}" +
             $"&current=temperature_2m,relative_humidity_2m,wind_speed_10m" +
-            $"&timezone=America%2FLima";
+            $"&timezone=auto";
 
-        var openMeteoResponse = await _httpClient.GetFromJsonAsync<OpenMeteoForecastResponse>(url);
+        using var request = new HttpRequestMessage(HttpMethod.Get, url);
+        request.Headers.UserAgent.ParseAdd("SmartGas.Api/1.0");
 
-        if (openMeteoResponse == null)
+        using var response = await _httpClient.SendAsync(request);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            return null;
+        }
+
+        await using var stream = await response.Content.ReadAsStreamAsync();
+
+        var options = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        };
+
+        var openMeteoResponse = await JsonSerializer.DeserializeAsync<OpenMeteoForecastResponse>(stream, options);
+
+        if (openMeteoResponse?.Current == null || openMeteoResponse.CurrentUnits == null)
         {
             return null;
         }
